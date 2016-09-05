@@ -12,11 +12,12 @@
 #define Q_UNITY (1<<Q)
 
 #define MEAN_N 32768
-#defive MEAN_SHIFT 15
+#define MEAN_SHIFT 15
 
 #define _ABS(X) (X ^ (X>>15))-(X>>15)
 #define ABS_16(X) (X==-32768 ? (32767) : _ABS(X))
-int testdata[5]={32767,32767,256,256,256};
+int testdata[5]={
+  32767,32767,256,256,256};
 
 unsigned long Timestamp=0;
 
@@ -35,16 +36,24 @@ int signal2dB(int signal)
 //Square
 //Root
 
-int old_mean_val,mean_val=0;
-unsigned long mean_index=0;
-int mean(int in)
+int old_mean_val,oldest_data,mean_val=0;
+unsigned long mean_ct=0;
+int mean(int indata)
 {
-  new_mean=old_mean_val+(indata-oldest_data)>>MEAN_SHIFT;
+  mean_val=old_mean_val+(indata-oldest_data)>>MEAN_SHIFT;
   old_mean_val=mean_val;
-  mean_index++;
-  if(mean_index==MEAN_N)mean_index=0;
-  
-  return new_mean;
+  if(mean_ct==MEAN_N)
+  {
+    mean_ct=0;
+    oldest_data=indata;
+  }
+  else if(mean_ct==0)
+  {
+    oldest_data=indata;
+  }
+  mean_ct++;
+
+  return mean_val;
   //mean_ct++; //Will overflow: bad.
   //mean_val=(mean_val*(mean_ct-1)+in*8)/mean_ct;
   //return mean_val/8;
@@ -159,15 +168,15 @@ inline int quick_rms(int data[],int N) //OK. Calcluates average rectified value!
   return divIntQ0(sum,N);
 }
 
-  int float2Int(float x) //OK!
-  {
-    long temp;
-    int result;
-    if(x>=0) temp=(long)(x*Q_SCALE_F+0.5);
-    else temp=(long)(x*Q_SCALE_F-0.5);
-    result=sat16(temp);
-    return result;
-  }
+int float2Int(float x) //OK!
+{
+  long temp;
+  int result;
+  if(x>=0) temp=(long)(x*Q_SCALE_F+0.5);
+  else temp=(long)(x*Q_SCALE_F-0.5);
+  result=sat16(temp);
+  return result;
+}
 
 float int2Float(int x) //OK!
 {
@@ -192,6 +201,7 @@ void loop()
 
   delay(2000);
 }
+
 
 
 
