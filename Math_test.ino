@@ -11,6 +11,8 @@
 #define Q_SCALE_F (float)(1L<<Q)
 #define Q_UNITY (1<<Q)
 
+#define MEAN_N 32768
+#defive MEAN_SHIFT 15
 
 #define _ABS(X) (X ^ (X>>15))-(X>>15)
 #define ABS_16(X) (X==-32768 ? (32767) : _ABS(X))
@@ -33,13 +35,19 @@ int signal2dB(int signal)
 //Square
 //Root
 
-int mean_val=0;
-int mean_ct=0;
+int old_mean_val,mean_val=0;
+unsigned long mean_index=0;
 int mean(int in)
 {
-  mean_ct++;
-  mean_val=(mean_val*(mean_ct-1)+in*8)/mean_ct;
-  return mean_val/8;
+  new_mean=old_mean_val+(indata-oldest_data)>>MEAN_SHIFT;
+  old_mean_val=mean_val;
+  mean_index++;
+  if(mean_index==MEAN_N)mean_index=0;
+  
+  return new_mean;
+  //mean_ct++; //Will overflow: bad.
+  //mean_val=(mean_val*(mean_ct-1)+in*8)/mean_ct;
+  //return mean_val/8;
 }
 void mean_reset()
 {
