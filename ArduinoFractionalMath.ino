@@ -11,8 +11,8 @@
 #define Q_SCALE_F (float)(1L<<Q)
 #define Q_UNITY (1<<Q)
 
-#define MEAN_N 32768
-#define MEAN_SHIFT 15
+#define MEAN_N (2^12)
+#define MEAN_SHIFT 12
 
 #define _ABS(X) (X ^ (X>>15))-(X>>15)
 #define ABS_16(X) (X==-32768 ? (32767) : _ABS(X))
