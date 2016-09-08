@@ -11,13 +11,12 @@
 #define Q_SCALE_F (float)(1L<<Q)
 #define Q_UNITY (1<<Q)
 
-#define MEAN_N (2^12)
-#define MEAN_SHIFT 12
+#define MEAN_SHIFT 2
+#define MEAN_N (1<<MEAN_SHIFT)
 
 #define _ABS(X) (X ^ (X>>15))-(X>>15)
 #define ABS_16(X) (X==-32768 ? (32767) : _ABS(X))
-int testdata[5]={
-  32767,32767,256,256,256};
+int testdata[16]={1,4,2,4,2,7,34,56,7,8,7,6,4,21,4,9};
 
 unsigned long Timestamp=0;
 
@@ -36,32 +35,54 @@ int signal2dB(int signal)
 //Square
 //Root
 
-int old_mean_val,oldest_data,mean_val=0;
-unsigned long mean_ct=0;
-int mean(int indata)
+int old_mean_val=0,oldest_data=0,mean_ct=0;
+long mean_val=0;
+int mean(int indata,int *utdata) //Only works with one instance.
 {
+  Serial.print(indata);Serial.print(" ");Serial.print(oldest_data);Serial.print(" ");Serial.println((indata-oldest_data)>>MEAN_SHIFT);
   mean_val=old_mean_val+(indata-oldest_data)>>MEAN_SHIFT;
   old_mean_val=mean_val;
+  *utdata=mean_val;
+  int result=false;
   if(mean_ct==MEAN_N)
   {
     mean_ct=0;
   }
   else if(mean_ct==MEAN_N-1)
   {
-    oldest_data=indata;
+    oldest_data=indata; //Används N steg senare. Måste beräknas för VARJE indata! Varje indata har en oldest_data N steg bakåt. Det kräver N st. lagrade värden...
+    Serial.println("True");
+    result=true;
   }
   mean_ct++;
+//  Serial.println(mean_val);
+  return result;
+}
 
-  return mean_val;
-  //mean_ct++; //Will overflow: bad.
-  //mean_val=(mean_val*(mean_ct-1)+in*8)/mean_ct;
-  //return mean_val/8;
-}
-void mean_reset()
+int mean2(int indata,int *utdata)//M=(1+2+3+4)/4=(3*(1+2+3)/3+4)/4=((n-1)*old_mean+indata)/n
 {
-  mean_ct=0;
-  mean_val=0;
+  mean_ct++;
+  int result=false;
+  if(mean_ct==MEAN_N+1)
+  {
+    mean_ct=1;
+    mean_val=0;
+  }
+  
+  //mean_val=(mean_val*(mean_ct-1)+indata)/mean_ct;
+  mean_val+=indata;
+  if(mean_ct%MEAN_N==0)
+  mean_val>>MEAN_SHIFT;
+
+  if(mean_ct==MEAN_N)
+  {
+    result=true;
+    *utdata=mean_val;
+  }
+  
+  return result;
 }
+
 
 static inline int sat16(long x) //OK!
 {
@@ -186,18 +207,24 @@ void loop()
 {
   int i;
   float sign=1.0;
-  int sign_i=1;
+  int mean_data,sign_i=1;
   int result=float2Int(1.0);
   float resultf=1.0;
 
+  for(i=0;i<16;i++)
+  {
+    if( mean2(testdata[i],&mean_data)==true) 
+    {
+      Serial.print(testdata[i]);Serial.print(" ");Serial.println(mean_data);
+    }
+  }
 
-
-
+/*
   Serial.print("quick_rms=");
   Serial.println(quick_rms(testdata,5));
   Serial.print("RMS_f=");
   Serial.println(int2Float(quick_rms(testdata,5)),7);
-
+*/
   delay(2000);
 }
 
