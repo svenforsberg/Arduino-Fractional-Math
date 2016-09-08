@@ -45,7 +45,6 @@ int mean(int indata)
   if(mean_ct==MEAN_N)
   {
     mean_ct=0;
-    oldest_data=indata;
   }
   else if(mean_ct==MEAN_N-1)
   {
