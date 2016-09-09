@@ -59,25 +59,23 @@ int mean(int indata,int *utdata) //Only works with one instance.
   return result;
 }
 
-int mean2(int indata,int *utdata)//M=(1+2+3+4)/4=(3*(1+2+3)/3+4)/4=((n-1)*old_mean+indata)/n
+/*
+N_sum < 65536
+Max 32768
+*/
+int mean2(int indata,int *utdata)
 {
   mean_ct++;
   int result=false;
-  if(mean_ct==MEAN_N+1)
-  {
-    mean_ct=1;
-    mean_val=0;
-  }
-  
-  //mean_val=(mean_val*(mean_ct-1)+indata)/mean_ct;
+
   mean_val+=indata;
-  if(mean_ct%MEAN_N==0)
-  mean_val>>MEAN_SHIFT;
 
   if(mean_ct==MEAN_N)
   {
+    *utdata=mean_val>>MEAN_SHIFT;
     result=true;
-    *utdata=mean_val;
+    mean_val=0;
+    mean_ct=0;
   }
   
   return result;
