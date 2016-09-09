@@ -72,6 +72,7 @@ int mean2(int indata,int *utdata)
 
   if(mean_ct==MEAN_N)
   {
+    mean_val+=1<<(MEAN_SHIFT-1); //Round off
     *utdata=mean_val>>MEAN_SHIFT;
     result=true;
     mean_val=0;
